@@ -59,6 +59,7 @@ class Pipe(pygame.sprite.Sprite):
             self.rect[1] = H - y 
 
         self.mask = pygame.mask.from_surface(self.image)
+        self.passed = False
 
 
     def update(self):
@@ -96,9 +97,34 @@ def get_random_pipes(x):
     return (pipe, pipe_inverted)
 
 
+
+def reset_game():
+    global bird, bird_group, ground_group, pipe_group, score, game_over
+
+    bird = Bird()
+    bird_group = pygame.sprite.Group(bird)
+
+    ground_group = pygame.sprite.Group()
+    for i in range(2):
+        ground_group.add(Ground(GROUND_W * i))
+
+    pipe_group = pygame.sprite.Group()
+    pipes = get_random_pipes(W + 600)
+    pipe_group.add(pipes[0])
+    pipe_group.add(pipes[1])
+
+    score = 0
+    game_over = False
+
+
 pygame.init()
 screen = pygame.display.set_mode((W, H))
+pygame.display.set_caption("Flappy Bird")
+font = pygame.font.SysFont("Arial", 40)
+small_font = pygame.font.SysFont("Arial", 24)
+clock = pygame.time.Clock()
 
+reset_game()
 
 bird_group = pygame.sprite.Group()
 bird = Bird()
@@ -117,7 +143,7 @@ for i in range(1):
     pipe_group.add(pipes[0])
     pipe_group.add(pipes[1])
 
-clock = pygame.time.Clock()
+
 
 while True:
     clock.tick(18)
@@ -128,36 +154,54 @@ while True:
         if event.type == KEYDOWN:
             if event.key == K_SPACE:
                 bird.jump()
+            if game_over and event.key == K_SPACE:
+                reset_game()
 
 
     screen.blit(BACKGROUND, (0,0))
+    if not game_over:
+        if is_off_screen(ground_group.sprites()[0]):
+            ground_group.remove(ground_group.sprites()[0])
 
-    if is_off_screen(ground_group.sprites()[0]):
-        ground_group.remove(ground_group.sprites()[0])
+            new_ground = Ground(GROUND_W - 20)
+            ground_group.add(new_ground)
 
-        new_ground = Ground(GROUND_W - 20)
-        ground_group.add(new_ground)
+        if is_off_screen(pipe_group.sprites()[0]):
+            pipe_group.remove(pipe_group.sprites()[0])
+            pipe_group.remove(pipe_group.sprites()[0])
 
-    if is_off_screen(pipe_group.sprites()[0]):
-        pipe_group.remove(pipe_group.sprites()[0])
-        pipe_group.remove(pipe_group.sprites()[0])
+            pipes = get_random_pipes(W*2)
+            pipe_group.add(pipes[0])
+            pipe_group.add(pipes[1])
 
-        pipes = get_random_pipes(W*2)
-        pipe_group.add(pipes[0])
-        pipe_group.add(pipes[1])
+        for pipe in pipe_group:
+            if not pipe.passed and pipe.rect.right < bird.rect.left:
+                pipe.passed = True
+                score +=0.5
+
+        bird_group.update()
+        pipe_group.update()
+        ground_group.update()
 
 
-    bird_group.update()
+
+        if (pygame.sprite.groupcollide(bird_group , ground_group, False, False, pygame.sprite.collide_mask) or
+        pygame.sprite.groupcollide(bird_group , pipe_group, False, False, pygame.sprite.collide_mask)):
+            game_over = True
+
     bird_group.draw(screen)
-    pipe_group.update()
     pipe_group.draw(screen)
-    ground_group.update()
     ground_group.draw(screen)
 
+    score_surface = font.render(f"{int(score)}", True, (255, 255, 255))
+    screen.blit(score_surface, (W // 2 - score_surface.get_width() // 2, 40))
 
-    if (pygame.sprite.groupcollide(bird_group , ground_group, False, False, pygame.sprite.collide_mask) or
-    pygame.sprite.groupcollide(bird_group , pipe_group, False, False, pygame.sprite.collide_mask)):
-        break
+    if game_over:
+        game_over_text = font.render("Game Over", True, (255, 0, 0))
+        restart_text = small_font.render("Pressione ENTER para reiniciar", True, (255, 255, 255))
+
+        screen.blit(game_over_text, (W // 2 - game_over_text.get_width() // 2, H // 2 - 60))
+        screen.blit(restart_text, (W // 2 - restart_text.get_width() // 2, H // 2 + 60))
 
 
     pygame.display.update()
