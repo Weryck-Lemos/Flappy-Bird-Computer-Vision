@@ -4,7 +4,7 @@ from pygame.locals import *
 W = 400
 H = 800
 SPEED = 10
-GRAVITY = 0.8
+GRAVITY = 0.5
 GROUND_W = W*2
 GROUND_H = 100
 PIPE_W = 80
@@ -146,7 +146,7 @@ for i in range(1):
 
 
 while True:
-    clock.tick(18)
+    clock.tick(14)
     for event in pygame.event.get():
         if event.type ==  QUIT:
             pygame.quit()
@@ -198,7 +198,7 @@ while True:
 
     if game_over:
         game_over_text = font.render("Game Over", True, (255, 0, 0))
-        restart_text = small_font.render("Pressione ENTER para reiniciar", True, (255, 255, 255))
+        restart_text = small_font.render("Pressione ESPAÇO para reiniciar", True, (255, 255, 255))
 
         screen.blit(game_over_text, (W // 2 - game_over_text.get_width() // 2, H // 2 - 60))
         screen.blit(restart_text, (W // 2 - restart_text.get_width() // 2, H // 2 + 60))
