@@ -4,7 +4,7 @@ from pygame.locals import *
 W = 400
 H = 800
 SPEED = 10
-GRAVITY = 0.5
+GRAVITY = 0.8
 GROUND_W = W*2
 GROUND_H = 100
 PIPE_W = 80
